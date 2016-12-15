@@ -163,6 +163,6 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
 independentMethods = [8,9,10]
 #14 for all methods
 topsMethods = [1,2,4,7,11,12,14] #that aren't independent
-#for i in topsMethods:
+#for i in topsMethods: #loop through all methods and see if independent
 testIndependence2(12)
 testIndependence2(11)
