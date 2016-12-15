@@ -75,22 +75,21 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
     categories = ["fya", "fyb", "fyc", "fyd", "mya", "myb", "myc", "myd"]
     done = False
     for cat in categories:
-        cat = "mya"
         try:
             dataQualis = ClimbingRanker(cat + "BNatsQualis2016.csv")
-            for i,j in combinations(range(len(dataQualis.climbers)),2):
+            for i,j in combinations(range(len(dataQualis.climbers)),2): #find first 2 climbers to rank
                 if(not(done)):
-                    for k in range(0, len(dataQualis.climbers)):
+                    for k in range(0, len(dataQualis.climbers)): #see if including climber k changes the rank of the first two climbers
                         if(k == i or k == j):
                             continue
-                        data2 = createDataSet(cat, "Qualis", dataQualis, i,j)
-                        data3 = createDataSet(cat, "Qualis", dataQualis, i,j,k)
+                        data2 = createDataSet(cat, "Qualis", dataQualis, i,j) #create ClimbingRanker for i and j
+                        data3 = createDataSet(cat, "Qualis", dataQualis, i,j,k) #create ClimbingRanker for all three
                         try:
                             rank2 = data2.runMethod(methodNum)
                             rank3 = data3.runMethod(methodNum)
                             sign2 = np.sign(rank2[0]-rank2[1])
                             sign3 = np.sign(rank3[0]-rank3[1])
-                            if(sign2 != 0 and sign3 != 0 and not(sign2 == sign3)):
+                            if(sign2 != 0 and sign3 != 0 and not(sign2 == sign3)): #i and j flipped order with introduction of climber k
                                 print(rmc.getMethod(methodNum), " is not independent for ", cat, "qualis: ", rank2, rank3)
                                 print(data2.climbers, data3.climbers)
                                 print(data2.ranks, data3.ranks)
@@ -102,7 +101,7 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
         except ValueError as v:
             #print(v)
             x=1
-        if(not(done)):
+        if(not(done)): #now look at semis if nothing was found in qualis
             print("testing semis")
             try:
                 dataSemis = ClimbingRanker(cat + "BNatsSemis2016.csv")
@@ -130,7 +129,7 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
             except ValueError as v:
                 #print(v)
                 x=1
-        if(not(done)):
+        if(not(done)): #look in finals if not failure to meet independence criterion has been found
             print("testing finals")
             try:
                 dataFinals = ClimbingRanker(cat + "BNatsFinals2016.csv")
