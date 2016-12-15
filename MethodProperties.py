@@ -75,27 +75,21 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
     categories = ["fya", "fyb", "fyc", "fyd", "mya", "myb", "myc", "myd"]
     done = False
     for cat in categories:
-        cat = "mya"
         try:
             dataQualis = ClimbingRanker(cat + "BNatsQualis2016.csv")
-            i=8
-            j=11
-            #for i,j in combinations(range(len(dataQualis.climbers)),2):
-            for m in range(1):
+            for i,j in combinations(range(len(dataQualis.climbers)),2): #find first 2 climbers to rank
                 if(not(done)):
-                    k=22
-                    #for k in range(0, len(dataQualis.climbers)):
-                    for n in range(1):
+                    for k in range(0, len(dataQualis.climbers)): #see if including climber k changes the rank of the first two climbers
                         if(k == i or k == j):
                             continue
-                        data2 = createDataSet(cat, "Qualis", dataQualis, i,j)
-                        data3 = createDataSet(cat, "Qualis", dataQualis, i,j,k)
+                        data2 = createDataSet(cat, "Qualis", dataQualis, i,j) #create ClimbingRanker for i and j
+                        data3 = createDataSet(cat, "Qualis", dataQualis, i,j,k) #create ClimbingRanker for all three
                         try:
                             rank2 = data2.runMethod(methodNum)
                             rank3 = data3.runMethod(methodNum)
                             sign2 = np.sign(rank2[0]-rank2[1])
                             sign3 = np.sign(rank3[0]-rank3[1])
-                            if(sign2 != 0 and sign3 != 0 and not(sign2 == sign3)):
+                            if(sign2 != 0 and sign3 != 0 and not(sign2 == sign3)): #i and j flipped order with introduction of climber k
                                 print(rmc.getMethod(methodNum), " is not independent for ", cat, "qualis: ", rank2, rank3)
                                 print(data2.climbers, data3.climbers)
                                 print(data2.ranks, data3.ranks)
@@ -107,18 +101,13 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
         except ValueError as v:
             #print(v)
             x=1
-        if(not(done)):
+        if(not(done)): #now look at semis if nothing was found in qualis
             print("testing semis")
             try:
                 dataSemis = ClimbingRanker(cat + "BNatsSemis2016.csv")
-                i=13
-                j=15
                 for i,j in combinations(range(len(dataSemis.climbers)),2):
-                #for m in range(1):
                     if(not(done)):
-                        k=12
                         for k in range(0, len(dataSemis.climbers)):
-                        #for n in range(1):
                             if(k == i or k == j):
                                 continue
                             data2 = createDataSet(cat, "Semis", dataSemis, i,j)
@@ -140,7 +129,7 @@ def testIndependence2(methodNum): #randomly choose 2 climbers and see if rank is
             except ValueError as v:
                 #print(v)
                 x=1
-        if(not(done)):
+        if(not(done)): #look in finals if not failure to meet independence criterion has been found
             print("testing finals")
             try:
                 dataFinals = ClimbingRanker(cat + "BNatsFinals2016.csv")
@@ -177,14 +166,3 @@ topsMethods = [1,2,4,7,11,12,14] #that aren't independent
 #for i in topsMethods:
 testIndependence2(12)
 testIndependence2(11)
-
-
-
-#METHODS THAT TAKE NUMBER OF TOPS INTO ACCOUNT DO NOT SATISFY CONDORCET CRITERION -
-#for example, climber A beats climber B on 3/4 climbs, but doesn't top anything.
-#if climber B tops the one climb he beats climber A on, he wins even though climber A
-#was the condorcet winner
-
-#Borda Count w/o tops doesn't satisfy condorcet criterion or majority criterion
-
-#majority criterion = "if one candidate is preferred by a majority (more than 50%) of voters, then that candidate must win".

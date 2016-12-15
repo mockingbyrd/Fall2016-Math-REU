@@ -8,7 +8,29 @@ import copy
 
 
 class ClimbingRanker:
+    """
+    Creates object that runs ranking methods on data from fileName
+    """
     def __init__(self, fileName, *args):
+        """
+        Initialize ClimbingRanker object
+        :param fileName: file where data is (csv format)
+        :param args: optional - can specify how many climbers to use (input int numberOfClimbers) or a list of all the
+        information you want to run the ranking methods on (must have all these indices):
+        args[0][0] = list of climbers (1D list)
+        args[0][1] = number of problems
+        args[0][2] = matrix of ranks for each climber on each problem (rows = climbers)
+        args[0][3] = list with total number of tops for each climber
+        args[0][4] = list of total number of attempts for each climber
+        args[0][5] = matrix of attempts for each climber on each problem (rows = climbers)
+        args[0][6] = list of total number of hold points for each climber
+        args[0][7] = matrix of hold points for each climber on each problem (rows = climbers)
+        args[0][8] = matrix with 1 if climber i topped problem j and 0 otherwise
+        args[0][9] = category (3 letter string like "fyd" - lowercase)
+        args[0][10] = round of competition (qualis, semis, finals - String)
+        args[0][11] = true if the set of data is complete (no climbers excluded) and false otherwise (for use in old
+        USAC methods)
+        """
         if(args != ()):
             if(isinstance(args[0], list)): #used for cross validation
                 self.climbers = args[0][0]

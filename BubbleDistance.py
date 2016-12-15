@@ -2,36 +2,6 @@
 import numpy as np
 from itertools import combinations
 
-# def createMatrix(rank): #for complete rankings of numbers 0-n only
-#     """
-#
-#     :param rank:
-#     :return:
-#     """
-#     matrix = np.zeros(shape=(len(rank), len(rank))) #empty nXn matrix
-#     for i in range(0,len(rank)):
-#         for j in range(0,len(rank)):
-#             if rank.index(i)<rank.index(j): #i is preferred to j
-#                 matrix[i][j] = 1
-#             elif rank.index(i)>rank.index(j): #j is preferred to i
-#                 matrix[i][j] = -1
-#             else: #tie - happens when i=j
-#                 matrix[i][j] = 0
-#    return matrix
-
-# def createMatrix2(rank): #faster because not looping through full matrix
-#     matrix = np.zeros(shape = (len(rank), len(rank)))
-#     for i,j in combinations(range(len(rank)),2):
-#         if rank.index(i) < rank.index(j):  # i is preferred to j
-#             matrix[i][j] = 1
-#             matrix[j][i] = -1
-#         elif rank.index(i) > rank.index(j):  # j is preferred to i
-#             matrix[i][j] = -1
-#             matrix[j][i] = 1
-#         else:  # tie - happens when i=j
-#             matrix[i][j] = 0
-#     return matrix
-
 def createMatrixWithTies(rank): #input list of ranks (like "rank" column in USAClimbing score sheets)
     """
     Creates matrix from a rank where m_{ij} is 1 if climber i is better than climber j and -1 if climber i is worse than
@@ -138,29 +108,3 @@ def l1normDistance(rankA, rankB):
     for i in range(0,len(rankA)):
         distance += abs(rankA[i] - rankB[i])
     return distance
-
-# def wordsToNums(rankA, rankB): #for two complete rankings of the same length, turns them from words into numbers
-#     if(rankA[0] is int):
-#         return rankA, rankB
-#     if(len(rankA) != len(rankB)):
-#         raise Exception("lengths don't match")
-#     rankAnums = []
-#     rankBnums = [-1]*len(rankB)
-#     for i in range(0,len(rankA)):
-#         rankAnums.append(i)
-#     for i in rankAnums:
-#         for j in range(0,len(rankB)):
-#             if(rankB[j] == rankA[i]):
-#                 rankBnums[j] = i
-#                 break
-#     for i in rankBnums:
-#         if(i==-1):
-#             raise Exception("lists don't contain same strings")
-#     return rankAnums, rankBnums
-
-#print(d([0,1,2],[1,2,0]))
-#print(d([0,1,2,3,4,5,6,7,8,9],[3,0,9,7,8,5,1,2,4,6]))
-#print(createMatrixWithTies([1,1,1,6,7,1,1]))
-# print(euclideanDistance([1,1,2,3],[1,2,2,2]))
-# print(l1normDistance([1,1,2,3],[1,2,2,2]))
-# print(d([1,1,2,3],[1,2,2,2]))
