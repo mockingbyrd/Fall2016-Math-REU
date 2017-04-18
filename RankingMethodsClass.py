@@ -16,7 +16,7 @@ class ClimbingRanker:
         Initialize ClimbingRanker object
         :param fileName: file where data is (csv format)
         :param args: optional - can specify how many climbers to use (input int numberOfClimbers) or a list of all the
-        information you want to run the ranking methods on (must have all these indices):
+        information you want to run the ranking methods on (must have all of these indices):
         args[0][0] = list of climbers (1D list)
         args[0][1] = number of problems
         args[0][2] = matrix of ranks for each climber on each problem (rows = climbers)
@@ -30,23 +30,41 @@ class ClimbingRanker:
         args[0][10] = round of competition (qualis, semis, finals - String)
         args[0][11] = true if the set of data is complete (no climbers excluded) and false otherwise (for use in old
         USAC methods)
+        (or all of these indices (for the degreeOfIndependence analysis):
+        args[0][0] = list of climbers (1D list)
+        args[0][1] = number of problems
+        args[0][2] = matrix of ranks for each climber on each problem (rows = climbers)
+        args[0][3] = list with total number of tops for each climber
         """
         if(args != ()):
             if(isinstance(args[0], list)): #used for cross validation
-                self.climbers = args[0][0]
-                self.numProblems = args[0][1]
-                self.numClimbers = len(self.climbers)
-                self.ranks = args[0][2]
-                self.flippedRanks = self.__flipRankings()
-                self.tops = args[0][3]
-                self.attempts = args[0][4]
-                self.attemptsPerProblem = args[0][5]
-                self.points = args[0][6]
-                self.pointsPerProblem = args[0][7]
-                self.topsPerProblem = args[0][8]
-                self.category = args[0][9]
-                self.round = args[0][10]
-                self.complete = args[0][11]
+                if(len(args[0]) == 12):
+                    self.climbers = args[0][0]
+                    self.numProblems = args[0][1]
+                    self.numClimbers = len(self.climbers)
+                    self.ranks = args[0][2]
+                    self.flippedRanks = self.__flipRankings()
+                    self.tops = args[0][3]
+                    self.attempts = args[0][4]
+                    self.attemptsPerProblem = args[0][5]
+                    self.points = args[0][6]
+                    self.pointsPerProblem = args[0][7]
+                    self.topsPerProblem = args[0][8]
+                    self.category = args[0][9] #used to complete incomplete data and determine the average number of holds on a climb
+                    self.round = args[0][10] #only used to complete incomplete data
+                    self.complete = args[0][11]
+                elif(len(args[0]) == 4): #will be used to calculate degreeOfIndependence
+                    self.climbers = args[0][0]
+                    self.numProblems = args[0][1]
+                    self.numClimbers = len(self.climbers)
+                    self.ranks = args[0][2]
+                    self.flippedRanks = self.__flipRankings()
+                    self.tops = args[0][3]
+                    self.complete = True
+                    if(len(self.tops) != self.numClimbers):
+                        raise ValueError("length of the tops vector must equal numClimbers")
+                else:
+                    raise ValueError("Invalid arguments")
             else:
                 if(isinstance(args[0], int)): #also used for cross validation, also if you just want part of data set
                     self.data = ClimbingDataFile(fileName, args[0])
@@ -84,15 +102,15 @@ class ClimbingRanker:
             self.category = fileName[0:3]
         self.methods = [self.l2NormMethodNoTops, self.l2NormMethod, self.geometricMeanMethod,
                         self.geometricMeanMethodNoTops, self.usacMethod, self.usacMethodNoTops,
-                        self.bordaMethodNoTops, self.bordaMethod, self.mergedOldMethod, self.abs10Method,
+                        self.bordaMethodNoTops, self.bordaMethod, self.bordaMethodUsacRankingPoints, self.mergedOldMethod, self.abs10Method,
                         self.topScoreMethod, self.wAlgorithmInteger, self.wAlgorithmOptimalInteger, self.wAlgorithmNoTops,
                         self.linearProgrammingOptimalSplit]
 
     def bordaMethod(self):  # l1 norm method
         """
-        uses the borda method of rank aggregation to aggregate the ranks in rankings matrix. add up rankings of each climber
-        on each problem and then rank them based on number of tops and then these totalPoint numbers (higher number of tops is better,
-        higher numbers in totalPoints list are worse).
+        uses the borda method of rank aggregation to aggregate the ranks in rankings matrix (but doesn't take average
+        rank when tied). add up rankings of each climber on each problem and then rank them based on number of tops and
+        then these totalPoint numbers (higher number of tops is better, higher numbers in totalPoints list are worse).
         :return: list of climbers in their final ranked order and aggregated rank as calculated by the borda method
         """
         topsList = self.tops.copy()  # copy it so you don't change the original tops list when tops gets changed in getMinIndexWithTops
@@ -100,6 +118,21 @@ class ClimbingRanker:
         for climber in range(0, self.numClimbers):
             for problem in range(0, self.numProblems):
                 totalPoints[climber] += self.ranks[climber][problem]
+        return self.__calculateFinalRank(topsList, totalPoints)
+
+    def bordaMethodUsacRankingPoints(self):
+        """
+        uses the borda method of rank aggregation to aggregate the rank points in the ranking points matrix.
+        add up rankings of each climber on each problem and then rank them based on number of tops and
+        then these totalPoint numbers (higher number of tops is better, higher numbers in totalPoints list are worse).
+        :return: list of climbers in their final ranked order and aggregated rank as calculated by the borda method
+        """
+        rankings = self.__getUSAClimbingRankingPoints()
+        topsList = self.tops.copy()  # copy it so you don't change the original tops list when tops gets changed in getMinIndexWithTops
+        totalPoints = [0] * self.numClimbers  # will store borda points for each climber
+        for climber in range(0, self.numClimbers):
+            for problem in range(0, self.numProblems):
+                totalPoints[climber] += rankings[climber][problem]
         return self.__calculateFinalRank(topsList, totalPoints)
 
     def bordaMethodNoTops(self):
@@ -180,7 +213,7 @@ class ClimbingRanker:
             totalPoints[climber] = product ** (1 / self.numProblems)
         return self.__calculateFinalRankNoTops(totalPoints)
 
-    def l2NormMethod(self):
+    def l2NormMethod(self): #not mentioned in research paper at all
         """
         uses the l2 norm method of rank aggregation to aggregate the ranks in rankings matrix. add the square of the
         rankings of each climber on each problem and then rank them based number of tops and then on the square root of these
@@ -196,7 +229,7 @@ class ClimbingRanker:
             totalPoints[climber] = sum ** (1 / 2)
         return self.__calculateFinalRank(topsList, totalPoints)
 
-    def l2NormMethodNoTops(self):  # takes tops as parameter so parameters are standard
+    def l2NormMethodNoTops(self):
         """
         uses the l2 norm method of rank aggregation to aggregate the ranks in rankings matrix. add the square of the
         rankings of each climber on each problem and rank them based on the square root of these sums (lower number is better)
@@ -1010,8 +1043,24 @@ class ClimbingRanker:
 
     def runMethod(self, num):
         """
-        runs method that is at index num in the list of methods
-        if num is larger than len(methods)-1 then locally kememize that method
+        runs method that is at index num in the list of methods (see list below)
+        if num is larger than len(methods)-1 then locally kememize the method that corresponds to num-16
+        0 = l2NormMethodNoTops
+        1 = l2NormMethod
+        2 = geometricMeanMethod,
+        3 = geometricMeanMethodNoTops
+        4 = usacMethod
+        5 = usacMethodNoTops
+        6 = bordaMethodNoTops
+        7 = bordaMethod
+        8 = bordaMethodTraditionalTies
+        9 = mergedOldMethod
+        10 = abs10Method
+        11 = topScoreMethod
+        12 = wAlgorithmInteger
+        13 = wAlgorithmOptimalInteger
+        14 = wAlgorithmNoTops
+        15 = linearProgrammingOptimalSplit
         """
         if(num<len(self.methods)):
             method = self.methods[num]
@@ -1041,6 +1090,7 @@ def getMethod(num):
     return ranker.getMethod(num)
 
 # ranker = ClimbingRanker("fybBNatsSemis2016.csv")
+# print(ranker.ranks)
 # print(ranker.points)
 # print(ranker.l2NormMethodNoTops())
 # print(ranker.l2NormMethod())
@@ -1048,6 +1098,7 @@ def getMethod(num):
 # print(ranker.geometricMeanMethod())
 # print(ranker.bordaMethodNoTops())
 # print(ranker.bordaMethod())
+# print(ranker.bordaMethodUsacRankingPoints())
 # print(ranker.abs10Method())
 # print(ranker.topScoreMethod())
 # print(ranker.mergedOldMethod())
