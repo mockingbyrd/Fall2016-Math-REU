@@ -3,16 +3,13 @@ import random
 from RankingMethodsClass import ClimbingRanker
 import RankingMethodsClass as rmc
 import csv
-#need to produce list of climbers, numProblems, ranks, and tops for creating a ClimbingRanker object
+from itertools import combinations
+from threading import Thread
+from threading import Lock
+from ResultsSetClass import ResultSet
 
-#returned list has the rank of each climber at their index in the list (based on climbers list)
-
-##steps in the process:
-#1. produce a set of results. 4 problems, n climbers, 0 tops
-#2. use the method on this set of results
-#3. produce another set of results where the performance of two climbers remains the same
-#4. use the method on this new set of results and verify that the relative rank of the two climbers remains the same
-
+##########################CREATES TWO RANDOM PROFILES WHERE THE RELATIVE RANKS OF TWO CLIMBERS STAY THE SAME, DETERMINES
+##########################IF THE RELATIVE FINAL RANK FOR THE TWO CLIMBERS IS THE SAME
 def makeRank(list):
     """
     takes a general list and makes it into a rank (accounting for ties)
@@ -172,20 +169,174 @@ def doIndependenceAnalysis(methodNum, iterations, numClimbers, tops, numProblems
         sum += compareResults(results1, results2, 0, 1)
     return sum/iterations
 
-numberOfClimbers = 15
-#print(doIndependenceAnalysis(8, 10, numberOfClimbers, [0]*numberOfClimbers))
+# numberOfClimbers = 10
+# #print(doIndependenceAnalysis(8, 10, numberOfClimbers, [0]*numberOfClimbers))
+#
+# listOfMethodNumsNoTops = [0, 3, 5, 6, 8, 15] #l2, geomean, usac, borda, borda with traditional ties, linprogsplit
+# methodNames = [0]*len(listOfMethodNumsNoTops)
+# methodIndependencePercent = [0]*len(listOfMethodNumsNoTops)
+# for index in range(0, len(listOfMethodNumsNoTops)):
+#     methodNum = listOfMethodNumsNoTops[index]
+#     methodNames[index] = rmc.getMethod(methodNum)
+#     print(methodNames[index])
+#     methodIndependencePercent[index] = doIndependenceAnalysis(methodNum, 1000, numberOfClimbers, [0]*numberOfClimbers)
+#     print(methodIndependencePercent[index])
+# with open('independencePercentagesFor10000IterationsAnd15Climbers.csv', 'w') as csvfile:
+#     writer = csv.writer(csvfile)
+#     writer.writerow(['method', 'percentage of times independent'])
+#     for index in range(0, len(methodNames)):
+#         writer.writerow([methodNames[index], methodIndependencePercent[index]])
 
-listOfMethodNumsNoTops = [0, 3, 5, 6, 8] #, 15] #l2, geomean, usac, borda, borda with traditional ties, linprogsplit
-methodNames = [0]*len(listOfMethodNumsNoTops)
-methodIndependencePercent = [0]*len(listOfMethodNumsNoTops)
-for index in range(0, len(listOfMethodNumsNoTops)):
-    methodNum = listOfMethodNumsNoTops[index]
-    methodNames[index] = rmc.getMethod(methodNum)
-    print(methodNames[index])
-    methodIndependencePercent[index] = doIndependenceAnalysis(methodNum, 10000, numberOfClimbers, [0]*numberOfClimbers)
-    print(methodIndependencePercent[index])
-with open('independencePercentagesFor10000IterationsAnd15Climbers.csv', 'w') as csvfile:
-    writer = csv.writer(csvfile)
-    writer.writerow(['method', 'percentage of times independent'])
-    for index in range(0, len(methodNames)):
-        writer.writerow([methodNames[index], methodIndependencePercent[index]])
+
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+###################################SECOND METHOD OF INDEPENDENCE ANALYSIS##############################################
+#######################################################################################################################
+#######################################################################################################################
+#######################################################################################################################
+
+def doIndependenceAnalysisTwo(methodNum, iterations, numClimbers, numClimbersChanged, numProblemsChanged, numProblems = 4,
+                              randomNumberGenerator = None, haveClimberAbilities = True):
+    # make list of climbers
+    climbers = [0] * numClimbers
+    for i in range(0, numClimbers):
+        climbers[i] = str(i)
+
+    sum = 0
+    for count in range(0, iterations):  # runs the number of times that iterations specifies (upper bound in range not hit):
+        resultSet = ResultSet(numClimbers, numProblems, randomNumberGenerator, haveClimberAbilities=haveClimberAbilities)
+        #ranks, pointsPerProblem, attemptsPerProblem, topsPerProblem, maxPoints = generateResultSet(numClimbers, numProblems, randomNumberGenerator)
+        ranks, pointsPerProblem, attemptsPerProblem, topsPerProblem, maxPoints = resultSet.returnResultSet()
+        ranker = ClimbingRanker("", [climbers, numProblems, ranks, topsPerProblem, attemptsPerProblem, pointsPerProblem, maxPoints])
+        results1 = ranker.runMethod(methodNum)  # run the specified method
+        #ranks2, pointsPerProblem2, attemptsPerProblem2, topsPerProblem2 = \
+        #    generateResultSetTwo(numClimbers, numProblems, pointsPerProblem, attemptsPerProblem, maxPoints, numClimbersChanged, numProblemsChanged, randomNumberGenerator)
+        ranks2, pointsPerProblem2, attemptsPerProblem2, topsPerProblem2 = resultSet.generateResultSetTwo(numClimbersChanged, numProblemsChanged, randomNumberGenerator)
+        ranker = ClimbingRanker("", [climbers, numProblems, ranks2, topsPerProblem2, attemptsPerProblem2, pointsPerProblem2, maxPoints])
+        results2 = ranker.runMethod(methodNum)
+        sum += compareResultsTwo(results1, results2, numClimbersChanged)
+    return sum / iterations
+
+
+#################COMPARE FUNCTION##############################
+def compareResultsTwo(results1, results2, numClimbersChanged):
+    """
+    Compares the two ranked lists of results and determines if the relative order of the last numClimbers - numClimbersChanged has changed
+    :param results1: first list of results
+    :param results2: second list of results
+    :param numClimbersChanged: number of climbers whose score was changed
+    :return: 1 if the method was "independent" for these two results (relative order of those climbers didn't change),
+    0 otherwise
+    """
+    numClimbers = len(results1)
+    #loop through every combination of two climbers in the set of climbers whose relative placement shouldn't have changed
+    for i, j in combinations(range(numClimbersChanged, numClimbers), 2):
+        diff1 = results1[i] - results1[j]
+        diff2 = results2[i] - results2[j]
+        if(np.sign(diff1) != np.sign(diff2)): #relative order of the climbers changed
+            #print("not independent, 0")
+            #print("results1 are ", results1)
+            #print("results2 are ", results2)
+            return 0
+    #print("independent, 1")
+    return 1
+
+#############################METHOD THAT DEALS WITH WRITING RESULTS TO FILE##################################
+def writeToFile(listOfMethodNums, results, fileName):
+    """
+    Writes the results to a csv file
+    :param listOfMethodNums: list of the numbers of the methods we analyzed
+    :param results: list of the independence indices for each method (in the order of listOfMethodNums)
+    :param fileName: name of the file to write the results to
+    """
+    with open(fileName, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['method', 'percentage of times independent'])
+        for index in range(0, len(listOfMethodNums)):
+            methodName = rmc.getMethod(listOfMethodNums[index])
+            writer.writerow([methodName, results[index]])
+
+
+###############################METHODS TO DO MULTITHREADING OF ANALYSIS#############################################
+resultLock = Lock()
+
+def doIndependenceAnalysisMultithreaded(listOfMethodNums, numberOfClimbers, numberOfClimberChanged,
+                                        numberOfProblemsChanged, iterations, seed = 1, haveClimberAbilities = True):
+    results = [0] * len(listOfMethodNums)  # store the independence index for each method (each one produced on a different thread)
+    threads = [0] * len(listOfMethodNums)  # store all the threads that are running
+    for index in range(0, len(listOfMethodNums)):
+        methodNum = listOfMethodNums[index]
+        threadIndex = index
+        random = np.random.RandomState() #create an instance of a random number
+        random.seed(seed) #set the seed to 1
+        threads[threadIndex] = Thread(target=runAnalysisOnNewThread, args=(methodNum, iterations, numberOfClimbers,
+                                            numberOfClimberChanged, numberOfProblemsChanged, threadIndex, results, random,
+                                                                           haveClimberAbilities))
+        threads[threadIndex].start()
+    for thread in threads:
+        thread.join()
+    return results
+
+def runAnalysisOnNewThread(methodNum, iterations, numClimbers, numClimbersChanged, numProblemsChanged,
+                           threadIndex, results, random, haveClimberAbilities):
+    """
+    Runs the independence analysis 2 on a new thread and stores the result in results at threadIndex
+    :param methodNum: number of the method to run
+    :param iterations: number of times to run the method
+    :param numClimbers: number of climbers
+    :param numClimbersChanged: number of climbers whose performance will change between profiles
+    :param numProblemsChanged: number of problems on which those climbers' scores will change
+    :param threadIndex: index of this thread (for writing into results)
+    :param results: list of the independence indices
+    :param random: random number generator for this thread
+    """
+    global resultlock
+    result = doIndependenceAnalysisTwo(methodNum, iterations, numClimbers, numClimbersChanged,
+                                        numProblemsChanged, randomNumberGenerator = random,
+                                       haveClimberAbilities = haveClimberAbilities)
+    resultLock.acquire() #not sure if this is absolutely necessary but it seems like a good idea
+    results[threadIndex] = result
+    resultLock.release()
+
+########################THE "MAIN METHOD" WHERE WE ACTUALLY RUN THE INDEPENDENCE ANALYSIS############################
+
+
+
+#print(doIndependenceAnalysisTwo(15, 10, 15, 1, 4))
+
+#numberOfClimbers = 20
+# numberOfProblemsChanged = 4
+# numberOfClimbersChanged = 1
+# for numberOfClimbers in range(5, 10, 5):
+#     listOfMethodNums = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+#     methodNames = [0]*len(listOfMethodNums)
+#     methodIndependencePercent = [0]*len(listOfMethodNums)
+#     for index in range(0, len(listOfMethodNums)):
+#         random.seed(1)
+#         np.random.seed(1)
+#         methodNum = listOfMethodNums[index]
+#         methodNames[index] = rmc.getMethod(methodNum)
+#         print(methodNames[index])
+#         methodIndependencePercent[index] = \
+#             doIndependenceAnalysisTwo(methodNum, 1000, numberOfClimbers, numberOfClimbersChanged, numberOfProblemsChanged)
+#         print(methodIndependencePercent[index])
+    # with open('independencePercentagesFor' + str(numberOfClimbers) +
+    #                   'ClimbersAnd' + str(numberOfClimbersChanged) + 'ClimbersChangingScoreOn' +
+    #                   str(numberOfProblemsChanged) + 'Problems.csv', 'w') as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     writer.writerow(['method', 'percentage of times independent'])
+    #     for index in range(0, len(methodNames)):
+    #         writer.writerow([methodNames[index], methodIndependencePercent[index]])
+
+#listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+#listOfMethodNums = [16] #TODO: is this working???
+#random.seed(1)
+#results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 100, seed=1, haveClimberAbilities = False)
+#print(results)
+#writeToFile(listOfMethodNums, results, 'test.csv')
+
+listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+random.seed(1)
+results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=1, haveClimberAbilities=False)
+print(results)

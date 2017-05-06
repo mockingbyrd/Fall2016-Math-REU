@@ -2,6 +2,8 @@ import scipy.optimize
 import numpy as np
 from itertools import combinations
 import BubbleDistance as bd
+from threading import Thread
+from threading import Lock
 
 def createEqualityMatrix(n): #creates matrix for equality constraint for rankings of n items
     """
@@ -114,28 +116,42 @@ def getFinalRank(matrix, c):
         for col in range(0,len(matrix)):
             sum+= matrix[row][col]
         finalRank[row] = int(len(matrix)-sum)
+    finalRank = makeRank(finalRank) #if there are ties, the tied climbers get the wrong rank (tie for the lower instead of the higher)
     #now see if there are other optimal ranks - if climber i finishes in mth place and climber j finishes in m+1 place,
     #if cij = cji then they could have finished in the opposite places and that would have been optimal too -
     #see if this result has better conformity
-    i=1
-    tie = 1
-    sum = calculateConformity(finalRank, c)
-    while(i+tie<=len(finalRank)):
-        higher = finalRank.index(i)
-        lower = finalRank.index(i+tie)
-        if(c[sub2ind([numClimbers, numClimbers], higher, lower)] == c[sub2ind([numClimbers, numClimbers], lower, higher)]): #cij == cji
-            testRank = finalRank.copy()
-            testRank[lower] = testRank[higher]
-            testSum = calculateConformity(testRank, c)
-            if(testSum<sum):
-                finalRank[lower] = finalRank[higher]
-                tie += 1
-            else:
-                i+= tie
-                tie = 1
-        else:
-            i+= tie
-            tie = 1
+    ########commented out because we are getting .5 in the matrix sometimes so people are automatically tying
+    # i=1
+    # tie = 1
+    # sum = calculateConformity(finalRank, c)
+    # while(i+tie<=len(finalRank)):
+    #     try:
+    #         higher = finalRank.index(i)
+    #     except ValueError:
+    #         print("final rank: ", finalRank)
+    #         print("matrix: ", matrix)
+    #         print("c: ", c)
+    #         raise ValueError
+    #     try:
+    #         lower = finalRank.index(i+tie)
+    #     except ValueError:
+    #         print("final rank: ", finalRank)
+    #         print("matrix: ", matrix)
+    #         print("c: ", c)
+    #         raise ValueError
+    #     if(c[sub2ind([numClimbers, numClimbers], higher, lower)] == c[sub2ind([numClimbers, numClimbers], lower, higher)]): #cij == cji
+    #         testRank = finalRank.copy()
+    #         testRank[lower] = testRank[higher]
+    #         testSum = calculateConformity(testRank, c)
+    #         if(testSum<sum):
+    #             finalRank[lower] = finalRank[higher]
+    #             tie += 1
+    #         else:
+    #             i+= tie
+    #             tie = 1
+    #     else:
+    #         i+= tie
+    #         tie = 1
     return finalRank
 
 def getFinalClimberRank(finalRank, climbers):
@@ -157,28 +173,28 @@ def sortByTops(finalRank, climbers, tops):
     :param tops: 1D list of total number of tops for each climber
     :return: finalRank sorted by number of tops and a list of climbers in order of rank (does account for ties)
     """
-    rankAndTops = [] #list of lists, first index in inner list is rank, second is tops, third is climber (this way you can sort and still know who is who
+    rankAndTopsAndClimbers = [] #list of lists, first index in inner list is rank, second is tops, third is climber (this way you can sort and still know who is who
     for i in range(0, len(finalRank)):
         subList = []
         subList.append(finalRank[i])
         subList.append(tops[i])
         subList.append(climbers[i])
-        rankAndTops.append(subList)
-    rankAndTops.sort(key=lambda x: x[0]) #sort on rank
-    rankAndTops.sort(key=lambda x: x[1], reverse=True) #reverse sort on number of tops
+        rankAndTopsAndClimbers.append(subList)
+    rankAndTopsAndClimbers.sort(key=lambda x: x[0]) #sort on rank
+    rankAndTopsAndClimbers.sort(key=lambda x: x[1], reverse=True) #reverse sort on number of tops
     topRank = [0] * len(finalRank)
     climberRank = [""] * len(finalRank)
-    topRank[climbers.index(rankAndTops[0][2])] = 1  # lowest number is first
-    climberRank[0] = rankAndTops[0][2]
+    topRank[climbers.index(rankAndTopsAndClimbers[0][2])] = 1  # lowest number is first
+    climberRank[0] = rankAndTopsAndClimbers[0][2]
     current = 0
-    for i in range(1,len(rankAndTops)):
-        if(rankAndTops[i][0] == rankAndTops[i-1][0] and rankAndTops[i][1] == rankAndTops[i-1][1]): #tie
-            topRank[climbers.index(rankAndTops[i][2])] = topRank[climbers.index(rankAndTops[i-1][2])] #set rank of next climber to rank of previous climber
-            climberRank[current] += ", " + rankAndTops[i][2]
+    for i in range(1,len(rankAndTopsAndClimbers)):
+        if(rankAndTopsAndClimbers[i][0] == rankAndTopsAndClimbers[i-1][0] and rankAndTopsAndClimbers[i][1] == rankAndTopsAndClimbers[i-1][1]): #tie
+            topRank[climbers.index(rankAndTopsAndClimbers[i][2])] = topRank[climbers.index(rankAndTopsAndClimbers[i-1][2])] #set rank of next climber to rank of previous climber
+            climberRank[current] += ", " + rankAndTopsAndClimbers[i][2]
         else:
             current = i
-            topRank[climbers.index(rankAndTops[i][2])] = i+1 #set rank of climber to next available rank
-            climberRank[current] = rankAndTops[i][2]
+            topRank[climbers.index(rankAndTopsAndClimbers[i][2])] = i+1 #set rank of climber to next available rank
+            climberRank[current] = rankAndTopsAndClimbers[i][2]
     return topRank, climberRank
 
 def getClimberIndex(rankAndTops, climber): #gets index of climber in rankAndTops
@@ -190,6 +206,33 @@ def getClimberIndex(rankAndTops, climber): #gets index of climber in rankAndTops
     for i in range(0,len(rankAndTops)):
         if(rankAndTops[i][2] == climber):
             return i
+
+def sortRanksAndTopsAndClimbersByTops(ranks2DList, tops, climbers):
+    """
+    Sorts a list of tops, list of climbers, and 2D list of ranks by tops, so that the splitByTops method works as expected
+    :param ranks2DList: 2D list of ranks (rows (outer lists) = climbers)
+    :param tops: 1D list of tops for each climber
+    :param climbers: 1D list of climbers' names
+    :return: sorted ranks, tops, and climbers. ranks2D list appears to be altered, tops and climbers are not
+    """
+    #list of lists, first index in inner list is a list of ranks, second is tops, third is climber (this way you can sort and still know who is who)
+    rankAndTopsAndClimbers = []
+    for i in range(0, len(climbers)):
+        subList = []
+        subList.append(ranks2DList[i]) #1D list with that climber's ranks on all of the problems
+        subList.append(tops[i]) #number of tops the climber had in total
+        subList.append(climbers[i]) #name of that climber
+        rankAndTopsAndClimbers.append(subList)
+    rankAndTopsAndClimbers.sort(key=lambda x: x[1], reverse=True)  # reverse sort on number of tops (because more tops = better)
+    tops2 = [0]*len(climbers)
+    climbers2 = [""]*len(climbers)
+    ranks2 = [0]*len(climbers) #will be a 2D list where the rows (outer lists) are the climbers and the columns (inner lists) are the problems
+    for climber in range(0, len(climbers)):
+        ranks2[climber] = rankAndTopsAndClimbers[climber][0].copy()
+        tops2[climber] = rankAndTopsAndClimbers[climber][1]
+        climbers2[climber] = rankAndTopsAndClimbers[climber][2]
+    return ranks2DList, tops2, climbers2
+
 
 def splitProblemByTops(ranks, tops, climbers):
     """
@@ -207,17 +250,18 @@ def splitProblemByTops(ranks, tops, climbers):
             temp.append(ranks[row][col])
         ranksL.append(temp)
         temp = []
+    ranksSorted, topsSorted, climbersSorted = sortRanksAndTopsAndClimbersByTops(ranksL, tops, climbers)
     ranksList = [] #each entry in list will be the ranks for climbers with x tops
     nList = [] #keeps track of how many climbers are being ranked for each rank in ranksList
     climberList = [] #keeps track of climbers getting ranked for each rank in ranksList
-    previousNum = tops[0] #so you know if we are onto a new set of tops
+    previousNum = topsSorted[0] #so you know if we are onto a new set of tops
     rank = [] #keeps track of ranks for each set of tops, then appended to ranksList
     climberTemp = [] #keeps track of climbers for each set of tops, then appended to climberList
     nCount = 0 #keeps track of number of climbers for each set of tops, then appended to nList
     for i in range(0,len(tops)):
-        if(tops[i] == previousNum): #still on the same set of tops
-            rank.append(ranksL[i])
-            climberTemp.append(climbers[i])
+        if(topsSorted[i] == previousNum): #still on the same set of tops
+            rank.append(ranksSorted[i])
+            climberTemp.append(climbersSorted[i])
             nCount += 1
         else: #new set of tops
             #append rank, climberTemp, and nCount
@@ -229,9 +273,9 @@ def splitProblemByTops(ranks, tops, climbers):
             nCount = 1
             climberTemp = []
             #and append stuff for current i
-            previousNum = tops[i]
-            rank.append(ranksL[i])
-            climberTemp.append(climbers[i])
+            previousNum = topsSorted[i]
+            rank.append(ranksSorted[i])
+            climberTemp.append(climbersSorted[i])
     #append rank, climberTemp, and nCount for this last set of tops
     ranksList.append(rank)
     ranksList = fixRankList(ranksList)
@@ -368,17 +412,45 @@ def optimizeSplit(ranks, climbers, tops):
     ranksList, nList, climberList = splitProblemByTops(ranks, tops, climbers)
     smashedRanks = []
     smashedClimbers = []
+    finalRanks = [0]*len(ranksList)
+    threads = [0]*len(ranksList)
     for i in range(0,len(ranksList)):
         n = nList[i]
         bub = [2] * int((n * (n - 1) * (n - 2) / 3))
         beq = [1] * int((n * (n - 1) / 2))
+        threadIndex = i
         c = createC(ranksList[i])
-        lp = scipy.optimize.linprog(c, A_ub = createInequalityMatrix(n), b_ub = bub, A_eq = createEqualityMatrix(n), b_eq = beq)
-        finalRank = getFinalRank(makeMatrix(lp.get("x")), c)
+        #lp = scipy.optimize.linprog(c, A_ub = createInequalityMatrix(n), b_ub = bub, A_eq = createEqualityMatrix(n), b_eq = beq) #recomment to no longer multithread
+        #finalRank = getFinalRank(makeMatrix(lp.get("x")), c) #recomment to no longer multithread
+        threads[i] = Thread(target = runLinearProgramOnThread, args = (n, bub, beq, c, threadIndex, finalRanks))
+        threads[i].start()
         #finalClimberRank = getFinalClimberRank(finalRank, climberList[i])
+    for thread in threads:
+        thread.join() #wait for all the threads to finish
+    for i in range(len(threads)): #produce the final result by smashing all the little results together
+        finalRank = finalRanks[i]
         smash(smashedRanks, finalRank, i, nList)
         #smashedClimbers += finalClimberRank
     rank, climberRank = sortByTops(smashedRanks, climbers, tops)
     return rank, climberRank
 
-
+resultLock = Lock()
+def runLinearProgramOnThread(n, bub, beq, c, threadIndex, finalRanks):
+    """
+    Method that allows the linear program for each top set to be run on a new thread. Puts its output rank in the
+    correct index in finalRanks.
+    :param n: linear programming argument
+    :param bub: other linear programming argument
+    :param beq: another linear programming argument
+    :param c: matrix "C" in the linear programming book (summarizes the ranks to be aggregated)
+    :param threadIndex: index in finalRanks that this thread will put its results into
+    :param finalRanks: list that is the same length of the number of threads doing linear programming, will hold the
+    final rank produced by this thread in the threadIndex
+    :return: nothing (can't return with the way i'm doing multithreading
+    """
+    global resultLock
+    lp = scipy.optimize.linprog(c, A_ub=createInequalityMatrix(n), b_ub=bub, A_eq=createEqualityMatrix(n), b_eq=beq)
+    finalRank = getFinalRank(makeMatrix(lp.get("x")), c)
+    resultLock.acquire() #not sure if this is necessary, but it seems like a good idea
+    finalRanks[threadIndex] = finalRank
+    resultLock.release()

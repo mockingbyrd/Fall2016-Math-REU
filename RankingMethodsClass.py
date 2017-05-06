@@ -5,6 +5,7 @@ import numpy as np
 import BubbleDistance as bd
 import LinearProgramming as lp
 import copy
+import random
 
 
 class ClimbingRanker:
@@ -53,6 +54,7 @@ class ClimbingRanker:
                     self.category = args[0][9] #used to complete incomplete data and determine the average number of holds on a climb
                     self.round = args[0][10] #only used to complete incomplete data
                     self.complete = args[0][11]
+                    self.maxPointsPerProblem = None
                 elif(len(args[0]) == 4): #will be used to calculate degreeOfIndependence
                     self.climbers = args[0][0]
                     self.numProblems = args[0][1]
@@ -61,8 +63,26 @@ class ClimbingRanker:
                     self.flippedRanks = self.__flipRankings()
                     self.tops = args[0][3]
                     self.complete = True
+                    self.maxPointsPerProblem = None
                     if(len(self.tops) != self.numClimbers):
                         raise ValueError("length of the tops vector must equal numClimbers")
+                elif(len(args[0]) == 7): #also used in degreeOfIndependence analysis (for when we create the whole result and not just random ranks)
+                    self.climbers = args[0][0]
+                    self.numProblems = args[0][1]
+                    self.numClimbers = len(self.climbers)
+                    self.ranks = args[0][2]
+                    self.flippedRanks = self.__flipRankings()
+                    self.topsPerProblem = args[0][3]
+                    self.tops = self.__getTotal(self.topsPerProblem)
+                    self.attemptsPerProblem = args[0][4]
+                    self.attempts = self.__getTotal(self.attemptsPerProblem)
+                    self.pointsPerProblem = args[0][5]
+                    self.points = self.__getTotal(self.pointsPerProblem)
+                    self.maxPointsPerProblem = args[0][6]
+                    self.complete = True
+                    self.category = None
+                    self.round = None
+
                 else:
                     raise ValueError("Invalid arguments")
             else:
@@ -82,6 +102,7 @@ class ClimbingRanker:
                     self.category = fileName[0:3]
                     self.round = fileName[4:len(fileName)-4]
                     self.complete = False
+                    self.maxPointsPerProblem = None
                 else:
                     raise ValueError("Invalid arguments")
         else:
@@ -100,11 +121,25 @@ class ClimbingRanker:
             self.complete = True
             self.round = fileName[4:len(fileName)-4]
             self.category = fileName[0:3]
+            self.maxPointsPerProblem = None
         self.methods = [self.l2NormMethodNoTops, self.l2NormMethod, self.geometricMeanMethod,
                         self.geometricMeanMethodNoTops, self.usacMethod, self.usacMethodNoTops,
                         self.bordaMethodNoTops, self.bordaMethod, self.bordaMethodUsacRankingPoints, self.mergedOldMethod, self.abs10Method,
                         self.topScoreMethod, self.wAlgorithmInteger, self.wAlgorithmOptimalInteger, self.wAlgorithmNoTops,
-                        self.linearProgrammingOptimalSplit]
+                        self.linearProgrammingOptimalSplit, self.baselineRandomMethod]
+
+    def __getTotal(self, blankPerProblem):
+        """
+        :param blankPerProblem: numpy matrix of topsPerProblem or pointsPerProblem or attemptsPerProblem
+        :return: the total number of tops or points or attempts for each climber in a 1D list
+        """
+        total = []
+        for problem in blankPerProblem:
+            sum = 0
+            for x in problem:
+                sum += x
+            total.append(sum)
+        return total
 
     def bordaMethod(self):  # l1 norm method
         """
@@ -290,7 +325,9 @@ class ClimbingRanker:
         topsList = self.tops.copy()  # copy it so you don't change the original tops list when tops gets changed in getMinIndexWithTops
         holdNumbers = []  # maximum number of holds on each climb, -1 if that cannot be determined (no one topped)
         #loop through each problem and calculates maximum number of holds on each climb
-        if(self.complete):
+        if(self.maxPointsPerProblem != None):
+            holdNumbers = self.maxPointsPerProblem
+        elif(self.complete):
             for col in range(0, len(self.topsPerProblem[0])):
                 for row in range(0, len(self.topsPerProblem)):
                     if (self.topsPerProblem[row][col] == 1):
@@ -310,7 +347,10 @@ class ClimbingRanker:
                     if (row == len(tpp) - 1):
                         holdNumbers.append(-1)
         #if max number of holds could not be determined then take average points per climb in given category
-        averagePoints = sss.getAverageNumberOfHolds(self.category)
+        if(-1 in holdNumbers):
+            averagePoints = sss.getAverageNumberOfHolds(self.category)
+        else:
+            averagePoints = None
         holdPointsPerProblem = []
         #each hold is worth 1000/number of holds on problem
         for problem in range(0, len(holdNumbers)):
@@ -347,7 +387,9 @@ class ClimbingRanker:
         """
         holdNumbers = []  # maximum number of holds on each climb, -1 if that cannot be determined (no one topped)
         # loop through each problem and calculates maximum number of holds on each climb
-        if (self.complete):
+        if(self.maxPointsPerProblem != None):
+            holdNumbers = self.maxPointsPerProblem
+        elif (self.complete):
             for col in range(0, len(self.topsPerProblem[0])):
                 for row in range(0, len(self.topsPerProblem)):
                     if (self.topsPerProblem[row][col] == 1):
@@ -367,7 +409,10 @@ class ClimbingRanker:
                     if (row == len(tpp) - 1):
                         holdNumbers.append(-1)
         # if max number of holds could not be determined then take average points per climb in given category
-        averagePoints = sss.getAverageNumberOfHolds(self.category)
+        if(-1 in holdNumbers):
+            averagePoints = sss.getAverageNumberOfHolds(self.category)
+        else:
+            averagePoints = None
         holdPointsPerProblem = []
         # each hold is worth 1000/number of holds on problem
         for problem in range(0, len(holdNumbers)):
@@ -902,6 +947,13 @@ class ClimbingRanker:
         """
         return lp.optimizeSplit(self.ranks, self.climbers, self.tops)[0]
 
+    def baselineRandomMethod(self):
+        finalRank = [0]*self.numClimbers
+        for climber in range(0, self.numClimbers):
+            finalRank[climber] = random.randrange(1, self.numClimbers+1, 1) #generate random integer between 1 and numClimbers
+        finalRank = lp.makeRank(finalRank)
+        return finalRank
+
     def locallyKemenize(self, method):
         """
         Given a final ranking and a set of rankings that that final ranking aggregated,
@@ -1061,6 +1113,7 @@ class ClimbingRanker:
         13 = wAlgorithmOptimalInteger
         14 = wAlgorithmNoTops
         15 = linearProgrammingOptimalSplit
+        16 = baselineRandomMethod
         """
         if(num<len(self.methods)):
             method = self.methods[num]
@@ -1086,10 +1139,10 @@ def getMethod(num):
     :param num: which method you want
     :return: the name of the method that num calls
     """
-    ranker = ClimbingRanker("fyaBNatsQualis2016.csv",0)
+    ranker = ClimbingRanker("fyaBNatsQualis2016.csv",0) #just need to pass a random file name in - won't use this data
     return ranker.getMethod(num)
 
-# ranker = ClimbingRanker("fybBNatsSemis2016.csv")
+#ranker = ClimbingRanker("fyaBNatsQualis2016.csv")
 # print(ranker.ranks)
 # print(ranker.points)
 # print(ranker.l2NormMethodNoTops())
@@ -1106,4 +1159,9 @@ def getMethod(num):
 # print(ranker.wAlgorithmOptimalInteger())
 # print(ranker.wAlgorithmNoTops())
 # print(ranker.linearProgrammingOptimal())
-# print(ranker.linearProgrammingOptimalSplit())
+#print(ranker.linearProgrammingOptimalSplit())
+
+#ranks1 = [[3,2,2,2],[2,4,4,3],[3,3,3,4],[1,1,1,1],[5,5,5,5]]
+#ranks2 = [[2,2,2,3],[3,4,4,2],[4,3,3,4],[1,1,1,1],[5,5,5,5]]
+#ranker = ClimbingRanker("", [["C1", "C2", "C3", "C4", "C5"], 4, ranks2, [0,0,0,0,0]])
+#print(ranker.wAlgorithmInteger())

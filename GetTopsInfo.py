@@ -1,6 +1,7 @@
 from ReadInData import ClimbingDataFile
 import numpy as np
 from itertools import combinations
+import csv
 
 def getTopsInfo(points, tops):
     """
@@ -166,4 +167,75 @@ def getMaxIndices(column, points):
 
     return max
 
+
+def getMaxPointsInfo(pointsPerProblem, topsList):
+    """
+    Creates a vector of the maximum number of points possible for each problem (if it can be determined)
+    :param pointsPerProblem: matrix of points per problem for each climber (rows = climbers)
+    :param topsList: vector with the number of tops for each climber
+    :return: max points vector, throws an error if topsPerProblem cannot be determined, and has a -1 in the vector if
+    no climber topped that problem.
+    """
+    topsPerProblem = getTopsInfo(pointsPerProblem, topsList)
+    maxPoints = [None]*len(pointsPerProblem[0])
+    for problemIndex in range(0, len(pointsPerProblem[0])):
+        for climberIndex in range(0, len(pointsPerProblem)):
+            if(topsPerProblem[climberIndex][problemIndex] == 1):
+                maxPoints[problemIndex] = pointsPerProblem[climberIndex][problemIndex]
+                break
+    return maxPoints
+
+def writeToFile(files, listOfMaxPoints, fileName, numProblems):
+    """
+    Writes the results to a csv file
+    :param files: list of the files we got max point info for
+    :param listOfMaxPoints: 2D list of max point for each file
+    :param fileName: name of the file to write the results to
+    """
+    with open(fileName, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        if(numProblems == 4):
+            writer.writerow(['file', 'maxPointsP1', 'maxPointsP2', 'maxPointsP3', 'maxPointsP4'])
+            for index in range(0, len(files)):
+                writer.writerow([files[index], listOfMaxPoints[index][0], listOfMaxPoints[index][1],
+                                 listOfMaxPoints[0][2], listOfMaxPoints[0][3]])
+        elif(numProblems == 3):
+            writer.writerow(['file', 'maxPointsP1', 'maxPointsP2', 'maxPointsP3'])
+            for index in range(0, len(files)):
+                writer.writerow([files[index], listOfMaxPoints[index][0], listOfMaxPoints[index][1],
+                                 listOfMaxPoints[0][2]])
+        else:
+            raise ValueError("cannot write to file with this number of tops")
+
+#data = ClimbingDataFile('fyaBNatsQualis2016.csv', 0)
+#print("max points", getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+qualisfiles = ['fyaBNatsQualis2016.csv', 'fybBNatsQualis2016.csv', 'fycBNatsQualis2016.csv',
+                'fydBNatsQualis2016.csv', 'myaBNatsQualis2016.csv', 'mybBNatsQualis2016.csv',
+                'mycBNatsQualis2016.csv', 'mydBNatsQualis2016.csv']
+semisfiles = ['fyaBNatsSemis2016.csv', 'fybBNatsSemis2016.csv', 'fycBNatsSemis2016.csv',
+                'fydBNatsSemis2016.csv', 'myaBNatsSemis2016.csv', 'mybBNatsSemis2016.csv',
+                'mycBNatsSemis2016.csv', 'mydBNatsSemis2016.csv']
+finalsfiles = ['fyaBNatsFinals2016.csv', 'fybBNatsFinals2016.csv', 'fycBNatsFinals2016.csv',
+                'fydBNatsFinals2016.csv', 'myaBNatsFinals2016.csv', 'mybBNatsFinals2016.csv',
+                'mycBNatsFinals2016.csv', 'mydBNatsFinals2016.csv']
+listOfMaxPoints = []
+for file in qualisfiles:
+    data = ClimbingDataFile(file, 0)
+    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+print(listOfMaxPoints)
+writeToFile(qualisfiles, listOfMaxPoints, "qualisMaxPoints.csv", 4)
+
+listOfMaxPoints = []
+for file in semisfiles:
+    data = ClimbingDataFile(file, 0)
+    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+print(listOfMaxPoints)
+writeToFile(semisfiles, listOfMaxPoints, "semisMaxPoints.csv", 3)
+
+listOfMaxPoints = []
+for file in finalsfiles:
+    data = ClimbingDataFile(file, 0)
+    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+print(listOfMaxPoints)
+writeToFile(finalsfiles, listOfMaxPoints, "finalsMaxPoints.csv", 3)
 

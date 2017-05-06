@@ -26,4 +26,3 @@ def getAverageNumberOfHolds(youthCategory):
         except ValueError: #couldn't determine tops data
             continue
     return np.std(holdNumbers), np.mean(holdNumbers)
-
