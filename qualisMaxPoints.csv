@@ -1,9 +1,9 @@
 file,maxPointsP1,maxPointsP2,maxPointsP3,maxPointsP4
-fyaBNatsQualis2016.csv,15.0,14.0,14.0,12.0
-fybBNatsQualis2016.csv,15.0,16.0,14.0,12.0
-fycBNatsQualis2016.csv,15.0,17.0,14.0,12.0
-fydBNatsQualis2016.csv,13.0,21.0,14.0,12.0
-myaBNatsQualis2016.csv,14.0,13.0,14.0,12.0
-mybBNatsQualis2016.csv,15.0,15.0,14.0,12.0
-mycBNatsQualis2016.csv,14.0,14.0,14.0,12.0
-mydBNatsQualis2016.csv,13.0,15.0,14.0,12.0
+fyaBNatsQualis2016.csv,15,14,14,12
+fybBNatsQualis2016.csv,15,16,11,11
+fycBNatsQualis2016.csv,15,17,,16
+fydBNatsQualis2016.csv,13,21,,10
+myaBNatsQualis2016.csv,14,13,9,14
+mybBNatsQualis2016.csv,15,15,12,12
+mycBNatsQualis2016.csv,14,14,20,12
+mydBNatsQualis2016.csv,13,15,22,14

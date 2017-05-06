@@ -198,12 +198,12 @@ def writeToFile(files, listOfMaxPoints, fileName, numProblems):
             writer.writerow(['file', 'maxPointsP1', 'maxPointsP2', 'maxPointsP3', 'maxPointsP4'])
             for index in range(0, len(files)):
                 writer.writerow([files[index], listOfMaxPoints[index][0], listOfMaxPoints[index][1],
-                                 listOfMaxPoints[0][2], listOfMaxPoints[0][3]])
+                                 listOfMaxPoints[index][2], listOfMaxPoints[index][3]])
         elif(numProblems == 3):
             writer.writerow(['file', 'maxPointsP1', 'maxPointsP2', 'maxPointsP3'])
             for index in range(0, len(files)):
                 writer.writerow([files[index], listOfMaxPoints[index][0], listOfMaxPoints[index][1],
-                                 listOfMaxPoints[0][2]])
+                                 listOfMaxPoints[index][2]])
         else:
             raise ValueError("cannot write to file with this number of tops")
 
