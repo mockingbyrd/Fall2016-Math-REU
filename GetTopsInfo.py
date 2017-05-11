@@ -209,33 +209,33 @@ def writeToFile(files, listOfMaxPoints, fileName, numProblems):
 
 #data = ClimbingDataFile('fyaBNatsQualis2016.csv', 0)
 #print("max points", getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
-qualisfiles = ['fyaBNatsQualis2016.csv', 'fybBNatsQualis2016.csv', 'fycBNatsQualis2016.csv',
-                'fydBNatsQualis2016.csv', 'myaBNatsQualis2016.csv', 'mybBNatsQualis2016.csv',
-                'mycBNatsQualis2016.csv', 'mydBNatsQualis2016.csv']
-semisfiles = ['fyaBNatsSemis2016.csv', 'fybBNatsSemis2016.csv', 'fycBNatsSemis2016.csv',
-                'fydBNatsSemis2016.csv', 'myaBNatsSemis2016.csv', 'mybBNatsSemis2016.csv',
-                'mycBNatsSemis2016.csv', 'mydBNatsSemis2016.csv']
-finalsfiles = ['fyaBNatsFinals2016.csv', 'fybBNatsFinals2016.csv', 'fycBNatsFinals2016.csv',
-                'fydBNatsFinals2016.csv', 'myaBNatsFinals2016.csv', 'mybBNatsFinals2016.csv',
-                'mycBNatsFinals2016.csv', 'mydBNatsFinals2016.csv']
-listOfMaxPoints = []
-for file in qualisfiles:
-    data = ClimbingDataFile(file, 0)
-    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
-print(listOfMaxPoints)
-writeToFile(qualisfiles, listOfMaxPoints, "qualisMaxPoints.csv", 4)
-
-listOfMaxPoints = []
-for file in semisfiles:
-    data = ClimbingDataFile(file, 0)
-    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
-print(listOfMaxPoints)
-writeToFile(semisfiles, listOfMaxPoints, "semisMaxPoints.csv", 3)
-
-listOfMaxPoints = []
-for file in finalsfiles:
-    data = ClimbingDataFile(file, 0)
-    listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
-print(listOfMaxPoints)
-writeToFile(finalsfiles, listOfMaxPoints, "finalsMaxPoints.csv", 3)
-
+#qualisfiles = ['fyaBNatsQualis2016.csv', 'fybBNatsQualis2016.csv', 'fycBNatsQualis2016.csv',
+#                'fydBNatsQualis2016.csv', 'myaBNatsQualis2016.csv', 'mybBNatsQualis2016.csv',
+#                 'mycBNatsQualis2016.csv', 'mydBNatsQualis2016.csv']
+# semisfiles = ['fyaBNatsSemis2016.csv', 'fybBNatsSemis2016.csv', 'fycBNatsSemis2016.csv',
+#                 'fydBNatsSemis2016.csv', 'myaBNatsSemis2016.csv', 'mybBNatsSemis2016.csv',
+#                 'mycBNatsSemis2016.csv', 'mydBNatsSemis2016.csv']
+# finalsfiles = ['fyaBNatsFinals2016.csv', 'fybBNatsFinals2016.csv', 'fycBNatsFinals2016.csv',
+#                 'fydBNatsFinals2016.csv', 'myaBNatsFinals2016.csv', 'mybBNatsFinals2016.csv',
+#                 'mycBNatsFinals2016.csv', 'mydBNatsFinals2016.csv']
+# listOfMaxPoints = []
+# for file in qualisfiles:
+#     data = ClimbingDataFile(file, 0)
+#     listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+# print(listOfMaxPoints)
+# writeToFile(qualisfiles, listOfMaxPoints, "qualisMaxPoints.csv", 4)
+#
+# listOfMaxPoints = []
+# for file in semisfiles:
+#     data = ClimbingDataFile(file, 0)
+#     listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+# print(listOfMaxPoints)
+# writeToFile(semisfiles, listOfMaxPoints, "semisMaxPoints.csv", 3)
+#
+# listOfMaxPoints = []
+# for file in finalsfiles:
+#     data = ClimbingDataFile(file, 0)
+#     listOfMaxPoints.append(getMaxPointsInfo(data.getPointsPerProblem(), data.getTops()))
+# print(listOfMaxPoints)
+# writeToFile(finalsfiles, listOfMaxPoints, "finalsMaxPoints.csv", 3)
+#

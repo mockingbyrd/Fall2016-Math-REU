@@ -1,5 +1,5 @@
 import numpy as np
-import RankingMethodsClass as rmc
+import csv
 
 class ResultSet:
     def __init__(self, numClimbers, numProblems, randomNumberGenerator, haveClimberAbilities = True):
@@ -236,3 +236,61 @@ class ResultSet:
             attempts[index] = 100  # since looking for smallest value, make it big so we don't hit it again
             points[index] = -1  # since looking for highest number of tops, make it small so we don't hit it again
         return minPointIndices
+
+def produceResultsInFile(numClimbers, numProblems, fileName, maxPointsFile, setNum):
+    """
+    Produces a result set for the given number of climbers and problems. Writes the results to fileName in the format
+    used by USA Climbing (for ease of reusing R programs) and writes the max points for each problem into the
+    maxPointsFile.
+    :param numClimbers: number of climbers for this result set
+    :param numProblems: number of problems in this result set
+    :param fileName: name of the file where the results should be written to
+    :param maxPointsFile: name of the file where the max points will be APPENDED
+    :param setNum: which result set this is (for identifiying in maxPointsFile
+    """
+    resultSet = ResultSet(numClimbers, numProblems, None)
+    highpoints = resultSet.pointsPerProblem
+    attempts = resultSet.attemptsPerProblem
+    ranks = resultSet.ranks
+    points = resultSet.ranks #not valid usac ranking points so must change if we want to use those ever
+    tops = resultSet.topsPerProblem
+
+    with open(fileName, 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        if(numProblems == 3):
+            writer.writerow(['rank', 'name', 'high', 'attempts', 'rank', 'points', 'high', 'attempts', 'rank', 'points',
+                             'high', 'attempts', 'rank', 'points', 'tops', 'points'])
+        elif(numProblems == 4):
+            writer.writerow(['rank', 'name', 'high', 'attempts', 'rank', 'points', 'high', 'attempts', 'rank', 'points',
+                             'high', 'attempts', 'rank', 'points', 'high', 'attempts', 'rank', 'points', 'tops', 'points'])
+        else:
+            raise ValueError("invalid number of problems")
+        for index in range(0, numClimbers):
+            if(numProblems == 3):
+                writer.writerow([index+1, str(index),
+                                highpoints[index][0], attempts[index][0], ranks[index][0], points[index][0],
+                                highpoints[index][1], attempts[index][1], ranks[index][1], points[index][1],
+                                highpoints[index][2], attempts[index][2], ranks[index][2], points[index][2],
+                                np.sum(tops[index]), 1])
+            elif(numProblems == 4):
+                writer.writerow([index + 1, str(index),
+                                highpoints[index][0], attempts[index][0], ranks[index][0],points[index][0],
+                                highpoints[index][1], attempts[index][1], ranks[index][1], points[index][1],
+                                highpoints[index][2], attempts[index][2], ranks[index][2], points[index][2],
+                                highpoints[index][3], attempts[index][3], ranks[index][3], points[index][3],
+                                np.sum(tops[index]), 1])
+
+    maxPoints = resultSet.maxPointsPerProblem
+    with open(maxPointsFile, 'a') as csvfile:
+        writer = csv.writer(csvfile)
+        if(numProblems == 3):
+            writer.writerow([setNum, maxPoints[0], maxPoints[1], maxPoints[2]])
+        elif(numProblems == 4):
+            writer.writerow([setNum, maxPoints[0], maxPoints[1], maxPoints[2], maxPoints[3]])
+
+#produce 8 result sets for qualis - one for each age group that we use in analysis
+#with open("qualisMaxPointsForGeneratedResults.csv", 'w') as csvfile:
+#    writer = csv.writer(csvfile)
+#    writer.writerow(['file', 'p1', 'p2', 'p3', 'p4'])
+#for setNum in range(1, 9):
+#    produceResultsInFile(50, 4, str(setNum)+"qualis.csv", "qualisMaxPointsForGeneratedResults.csv", setNum)

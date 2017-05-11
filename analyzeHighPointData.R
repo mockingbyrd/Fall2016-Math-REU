@@ -1,6 +1,7 @@
 setwd("~/Dropbox/Ranking_Research_with_Braxton/CODE/finalRankingCode")
 library(ggplot2)
-highPointData = read.csv("highpointAnalysisData.csv", header = TRUE)
+#highPointData = read.csv("highpointAnalysisData.csv", header = TRUE)
+highPointData = read.csv("highpointAnalysisDataQualisGenerated.csv", header = TRUE)
 colnames(highPointData) <- c("cat", "problem", "stat", "value")
 
 percentOfTopsInfo <- highPointData[highPointData$stat == "topsPercent",]

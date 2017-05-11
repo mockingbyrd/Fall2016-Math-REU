@@ -720,7 +720,7 @@ class ClimbingRanker:
             finalRank[i] = sum / numProblems
         # calculate next final rank
         newRank = self.__calculateNextFinalRank(finalRank)
-        while (bd.euclideanDistance(finalRank, newRank) > .1):
+        while (bd.euclideanDistance(finalRank, newRank) > .0001):
             finalRank = newRank
             newRank = self.__calculateNextFinalRank(finalRank)
         return newRank

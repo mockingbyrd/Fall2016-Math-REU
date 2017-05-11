@@ -336,7 +336,7 @@ def runAnalysisOnNewThread(methodNum, iterations, numClimbers, numClimbersChange
 #print(results)
 #writeToFile(listOfMethodNums, results, 'test.csv')
 
-listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-random.seed(1)
-results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=1, haveClimberAbilities=False)
-print(results)
+#listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+#random.seed(1)
+#results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=1, haveClimberAbilities=False)
+#print(results)
