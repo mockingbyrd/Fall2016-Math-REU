@@ -7,6 +7,7 @@ from itertools import combinations
 from threading import Thread
 from threading import Lock
 from ResultsSetClass import ResultSet
+import paretoEfficientAndMonotoneAnalysis as pema
 
 ##########################CREATES TWO RANDOM PROFILES WHERE THE RELATIVE RANKS OF TWO CLIMBERS STAY THE SAME, DETERMINES
 ##########################IF THE RELATIVE FINAL RANK FOR THE TWO CLIMBERS IS THE SAME
@@ -215,7 +216,25 @@ def doIndependenceAnalysisTwo(methodNum, iterations, numClimbers, numClimbersCha
         ranks2, pointsPerProblem2, attemptsPerProblem2, topsPerProblem2 = resultSet.generateResultSetTwo(numClimbersChanged, numProblemsChanged, randomNumberGenerator)
         ranker = ClimbingRanker("", [climbers, numProblems, ranks2, topsPerProblem2, attemptsPerProblem2, pointsPerProblem2, maxPoints])
         results2 = ranker.runMethod(methodNum)
-        sum += compareResultsTwo(results1, results2, numClimbersChanged)
+        sumAdd = compareResultsTwo(results1, results2, numClimbersChanged)
+        if(sumAdd == 0 and methodNum == 15): #linear program
+            bf1 = pema.bruteForceLP(ranks, False)
+            bf2 = pema.bruteForceLP(ranks2, False)
+            indexOfOneInOne = pema.getIndexInList(bf1, tuple(results1))
+            indexOfOneInTwo = pema.getIndexInList(bf2, tuple(results1))
+            indexOfTwoInTwo = pema.getIndexInList(bf2, tuple(results2))
+            indexOfTwoInOne = pema.getIndexInList(bf1, tuple(results2))
+            if (indexOfOneInOne != 1 or indexOfTwoInTwo != 1):
+                print("there were tops")
+            elif (indexOfOneInTwo != 1 and indexOfTwoInOne != 1):
+                print("ranks1: ", ranks)
+                print("results1: ", results1)
+                print("tops per problem 1:", topsPerProblem)
+                print("ranks2:", ranks2)
+                print("results2: ", results2)
+                print("tops per problem 2: ", topsPerProblem2)
+                print("index of two in one: ", indexOfTwoInOne, ", index of one in two: ", indexOfOneInTwo)
+        sum += sumAdd
     return sum / iterations
 
 
@@ -330,10 +349,10 @@ def runAnalysisOnNewThread(methodNum, iterations, numClimbers, numClimbersChange
     #         writer.writerow([methodNames[index], methodIndependencePercent[index]])
 
 #listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-#listOfMethodNums = [16] #TODO: is this working???
-#random.seed(1)
-#results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 100, seed=1, haveClimberAbilities = False)
-#print(results)
+listOfMethodNums = [15]
+random.seed(3)
+results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=3, haveClimberAbilities = True)
+print(results)
 #writeToFile(listOfMethodNums, results, 'test.csv')
 
 #listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]

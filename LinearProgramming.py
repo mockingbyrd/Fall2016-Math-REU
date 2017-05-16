@@ -169,7 +169,7 @@ def sortByTops(finalRank, climbers, tops):
     """
     sorts ranking so that a climber with more tops is not behind a climber with fewer tops
     :param finalRank: rank to be sorted (1D list)
-    :param climbers: 1D list of climbers
+    :param climbers: 1D list of climbers (ASSUMES THAT THIS LIST HAS UNIQUE VALUES)
     :param tops: 1D list of total number of tops for each climber
     :return: finalRank sorted by number of tops and a list of climbers in order of rank (does account for ties)
     """
@@ -431,8 +431,8 @@ def optimizeSplit(ranks, climbers, tops):
         finalRank = finalRanks[i]
         smash(smashedRanks, finalRank, i, nList)
         #smashedClimbers += finalClimberRank
-    rank, climberRank = sortByTops(smashedRanks, climbers, tops)
-    return rank, climberRank
+    #rank, climberRank = sortByTops(smashedRanks, climbers, tops)
+    return smashedRanks#, climberRank
 
 resultLock = Lock()
 def runLinearProgramOnThread(n, bub, beq, c, threadIndex, finalRanks):

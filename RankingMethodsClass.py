@@ -945,7 +945,7 @@ class ClimbingRanker:
         basically trying to minimize pairwise disagreements between final rank
         and each ranking (but not the same as minimizing the bubble distance between final rank and each ranking)
         """
-        return lp.optimizeSplit(self.ranks, self.climbers, self.tops)[0]
+        return lp.optimizeSplit(self.ranks, self.climbers, self.tops)
 
     def baselineRandomMethod(self):
         finalRank = [0]*self.numClimbers
