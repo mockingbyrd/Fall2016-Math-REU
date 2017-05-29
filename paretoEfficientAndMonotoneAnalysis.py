@@ -221,44 +221,56 @@ def doMonotonicityAnalysis(numClimbers, numProblems, iterations, numProblemsChan
     for iteration in range(0, iterations):
         ranks1 = produceMonotonicityResultSet(numClimbers, numProblems)
         ranker1 = ClimbingRanker("", [climbers, numProblems, ranks1, tops])
-        results1 = ranker1.runMethod(methodNum) #run specified method
+        if(methodNum == 12 or methodNum == 13):
+            results1, point1 = ranker1.runMethod(methodNum) #run specified method
+        else:
+            results1 = ranker1.runMethod(methodNum)  # run specified method
         ranks2 = produceMonotonicityResultSetTwo(ranks1, numProblems, numClimbers, numProblemsChanged)
         ranker2 = ClimbingRanker("", [climbers, numProblems, ranks2, tops])
-        results2 = ranker2.runMethod(methodNum) #run specified method
+        if(methodNum == 12 or methodNum == 13):
+            results2, point2 = ranker2.runMethod(methodNum)  # run specified method
+        else:
+            results2 = ranker2.runMethod(methodNum) #run specified method
         sumAdd = compareMonotoneResults(results1, results2)
         if(sumAdd == 0):
             if(methodNum == 12 or methodNum == 13):
-                min1 = calculateGeometricMedianSum(ranks1, results1)
-                min2 = calculateGeometricMedianSum(ranks2, results2)
-                oneTo2 = calculateGeometricMedianSum(ranks1, results2)
-                twoTo1 = calculateGeometricMedianSum(ranks2, results1)
+                intmin1 = calculateGeometricMedianSum(ranks1, results1)
+                min1 = calculateGeometricMedianSum(ranks1, point1)
+                intmin2 = calculateGeometricMedianSum(ranks2, results2)
+                min2 = calculateGeometricMedianSum(ranks2, point2)
+                intoneTo2 = calculateGeometricMedianSum(ranks1, results2)
+                oneTo2 = calculateGeometricMedianSum(ranks1, point2)
+                inttwoTo1 = calculateGeometricMedianSum(ranks2, results1)
+                twoTo1 = calculateGeometricMedianSum(ranks2, point1)
                 print(iteration)
                 print("ranks1: ", ranks1)
                 print("results1: ", results1)
+                print("point1: ", point1)
                 print("ranks2:", ranks2)
                 print("results2: ", results2)
-                print("min1: ", min1)
-                print("min2: ", min2)
-                print("oneTo2: ", oneTo2)
-                print("twoTo1: ", twoTo1)
+                print("point2: ", point2)
+                print("intmin1, min1: ", intmin1, min1)
+                print("intmin2, min2: ", intmin2, min2)
+                print("intoneTo2, oneTo2: ", intoneTo2, oneTo2)
+                print("inttwoTo1, twoTo1: ", inttwoTo1, twoTo1)
                 accurate1 = min(bruteForceWalg(ranks1, False), key=lambda x:x[1])
                 accurate2 = min(bruteForceWalg(ranks2, False), key=lambda x:x[1])
                 print("minimizing rank for first set of results: ", accurate1)
                 print("minimizing rank for second set of results: ", accurate2)
-            elif(methodNum == 15):
-                bf1 = bruteForceLP(ranks1, False)
-                bf2 = bruteForceLP(ranks2, False)
-                indexOfOneInOne = getIndexInList(bf1, tuple(results1))
-                indexOfOneInTwo = getIndexInList(bf2, tuple(results1))
-                indexOfTwoInTwo = getIndexInList(bf2, tuple(results2))
-                indexOfTwoInOne = getIndexInList(bf1, tuple(results2))
-                if(indexOfOneInOne != 1 or indexOfTwoInTwo != 1):
-                    raise ValueError("this should not be happening")
-                if(indexOfOneInTwo != 1 or indexOfTwoInOne != 1):
-                    print("ranks1: ", ranks1)
-                    print("results1: ", results1)
-                    print("ranks2:", ranks2)
-                    print("results2: ", results2)
+            #elif(methodNum == 15):
+            #    bf1 = bruteForceLP(ranks1, False)
+            #    bf2 = bruteForceLP(ranks2, False)
+            #    indexOfOneInOne = getIndexInList(bf1, tuple(results1))
+            #    indexOfOneInTwo = getIndexInList(bf2, tuple(results1))
+            #    indexOfTwoInTwo = getIndexInList(bf2, tuple(results2))
+            #    indexOfTwoInOne = getIndexInList(bf1, tuple(results2))
+            #    if(indexOfOneInOne != 1 or indexOfTwoInTwo != 1):
+            #        raise ValueError("this should not be happening")
+            #    if(indexOfOneInTwo != 1 or indexOfTwoInOne != 1):
+            #        print("ranks1: ", ranks1)
+            #        print("results1: ", results1)
+            #        print("ranks2:", ranks2)
+            #        print("results2: ", results2)
             else:
                 print("ranks1: ", ranks1)
                 print("results1: ", results1)
@@ -321,7 +333,7 @@ def doParetoEfficiencyAnalysis(numClimbers, numProblems, iterations, methodNum):
 #    print(doParetoEfficiencyAnalysis(5, 4, 10000, methodNum))
 
 #random.seed(10)
-#print(doMonotonicityAnalysis(5, 4, 50000, 1, 15))
+#print(doMonotonicityAnalysis(5, 4, 1000, 1, 15))
 ###it would appear that the linear program is monotone, however our implementation is ALMOST monotone (99% of the time)
 ###but fails to provide monotone results occasionaly because there are multiple optimal solutions and we have no way to
 ###know which one to choose
@@ -416,13 +428,13 @@ def findPercentOfTimeThatResultEqualsBruteForceResult(iterations, numClimbers, n
 
 
 ##########CHECKING COUNTEREXAMPLES FOR LINEAR PROGRAM#########################
-ranks1 = [[3,2,2,3],[2,4,4,4],[1,2,1,2],[4,1,3,1],[5,5,5,5]]
-results1 = [2,4,1,3,5]
+ranks1 = [[2,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[2,3,1,1]]
+results1 = [3,5,4,2,1]
 bf1 = bruteForceLP(ranks1, False)
 print(bf1)
 
-ranks2 = [[1,2,5,1],[3,4,3,4],[2,3,1,3],[4,1,2,1],[5,5,4,5]]
-results2 = [2,4,3,1,5]
+ranks2 = [[1,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[3,3,1,1]]
+results2 = [4,5,2,3,1]
 bf2 = bruteForceLP(ranks2, False)
 print(bf2)
 
@@ -430,5 +442,6 @@ print("index of results1: ", getIndexInList(bf1, tuple(results1)))
 print("index of results1 in bf2: ", getIndexInList(bf2, tuple(results1)))
 print("index of results2: ", getIndexInList(bf2, tuple(results2)))
 print("index of results2 in bf1: ", getIndexInList(bf1, tuple(results2)))
+
 
 

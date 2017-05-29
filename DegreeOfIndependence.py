@@ -163,15 +163,22 @@ def doIndependenceAnalysis(methodNum, iterations, numClimbers, tops, numProblems
     for count in range(0, iterations):  # runs the number of times that iterations specifies (upper bound in range not hit):
         ranks = produceResultSet(numClimbers, tops, numProblems)
         ranker = ClimbingRanker("", [climbers, numProblems, ranks, tops])
-        results1 = ranker.runMethod(methodNum)  # run the specified method
+        results1, raw1 = ranker.runMethod(methodNum)  # run the specified method
         ranks2 = produceResultSetTwo(ranks, tops, 0, 1)
         ranker = ClimbingRanker("", [climbers, numProblems, ranks2, tops])
-        results2 = ranker.runMethod(methodNum)
-        sum += compareResults(results1, results2, 0, 1)
+        results2, raw2 = ranker.runMethod(methodNum)
+        sumAdd = compareResults(results1, results2, 0, 1)
+        if(sumAdd == 0):
+            print("not independent")
+            print("ranks1: ", ranks)
+            print("raw1, results1: ", raw1, results1)
+            print("ranks2: ", ranks2)
+            print("raw2, results2: ", raw2, results2)
+        sum += sumAdd
     return sum/iterations
 
-# numberOfClimbers = 10
-# #print(doIndependenceAnalysis(8, 10, numberOfClimbers, [0]*numberOfClimbers))
+numberOfClimbers = 5
+print(doIndependenceAnalysis(12, 100, numberOfClimbers, [0]*numberOfClimbers)) #walg
 #
 # listOfMethodNumsNoTops = [0, 3, 5, 6, 8, 15] #l2, geomean, usac, borda, borda with traditional ties, linprogsplit
 # methodNames = [0]*len(listOfMethodNumsNoTops)
@@ -349,10 +356,10 @@ def runAnalysisOnNewThread(methodNum, iterations, numClimbers, numClimbersChange
     #         writer.writerow([methodNames[index], methodIndependencePercent[index]])
 
 #listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
-listOfMethodNums = [15]
-random.seed(3)
-results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=3, haveClimberAbilities = True)
-print(results)
+#listOfMethodNums = [15]
+#random.seed(3)
+#results = doIndependenceAnalysisMultithreaded(listOfMethodNums, 5, 1, 4, 1000, seed=3, haveClimberAbilities = True)
+#print(results)
 #writeToFile(listOfMethodNums, results, 'test.csv')
 
 #listOfMethodNums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]

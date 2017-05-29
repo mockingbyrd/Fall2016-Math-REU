@@ -720,7 +720,7 @@ class ClimbingRanker:
             finalRank[i] = sum / numProblems
         # calculate next final rank
         newRank = self.__calculateNextFinalRank(finalRank)
-        while (bd.euclideanDistance(finalRank, newRank) > .0001):
+        while (bd.euclideanDistance(finalRank, newRank) > .000001):
             finalRank = newRank
             newRank = self.__calculateNextFinalRank(finalRank)
         return newRank
@@ -788,7 +788,7 @@ class ClimbingRanker:
         :return: the rank
         """
         finalRank = self.__wAlgorithm()
-        return self.__getIntegerRanks(finalRank, 0)
+        return self.__getIntegerRanks(finalRank, 0), finalRank
 
     def __sort(self, finalRankAndIndices, threshold):
         finalRankSorted = []
@@ -921,7 +921,7 @@ class ClimbingRanker:
                 optimalThreshold = threshold
             threshold += .1
         #return optimalRank, optimalThreshold
-        return optimalRank
+        return optimalRank, finalRank
 
     def linearProgrammingOptimal(self):
         """
@@ -1161,7 +1161,9 @@ def getMethod(num):
 # print(ranker.linearProgrammingOptimal())
 #print(ranker.linearProgrammingOptimalSplit())
 
-#ranks1 = [[3,2,2,2],[2,4,4,3],[3,3,3,4],[1,1,1,1],[5,5,5,5]]
-#ranks2 = [[2,2,2,3],[3,4,4,2],[4,3,3,4],[1,1,1,1],[5,5,5,5]]
-#ranker = ClimbingRanker("", [["C1", "C2", "C3", "C4", "C5"], 4, ranks2, [0,0,0,0,0]])
-#print(ranker.wAlgorithmInteger())
+#ranks1 = [[3,2,2,3],[2,4,4,4],[1,2,1,2],[4,1,3,1],[5,5,5,5]]
+#ranks2 = [[1,2,5,1],[3,4,3,4],[2,3,1,3],[4,1,2,1],[5,5,4,5]]
+#ranker1 = ClimbingRanker("", [["C1", "C2", "C3", "C4", "C5"], 4, ranks1, [0,0,0,0,0]])
+#print(ranker1.linearProgrammingOptimalSplit())
+#ranker2 = ClimbingRanker("", [["C1", "C2", "C3", "C4", "C5"], 4, ranks2, [0,0,0,0,0]])
+#print(ranker2.linearProgrammingOptimalSplit())
