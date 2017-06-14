@@ -788,7 +788,7 @@ class ClimbingRanker:
         :return: the rank
         """
         finalRank = self.__wAlgorithm()
-        return self.__getIntegerRanks(finalRank, 0), finalRank
+        return self.__getIntegerRanks(finalRank, 0)
 
     def __sort(self, finalRankAndIndices, threshold):
         finalRankSorted = []
@@ -921,7 +921,7 @@ class ClimbingRanker:
                 optimalThreshold = threshold
             threshold += .1
         #return optimalRank, optimalThreshold
-        return optimalRank, finalRank
+        return optimalRank
 
     def linearProgrammingOptimal(self):
         """

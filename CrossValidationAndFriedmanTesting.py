@@ -202,13 +202,13 @@ methods = []
 #15 for just methods, 30 for methods and local kemenization of methods
 #13 is walg no tops - worse than other walgs
 #0 and 1 are l2 norm methods - not using anymore because they are dumb
-topsMethods = [2,4,7,8,9,10,11,12,14] #9 is abs10 method - doesn't use tops but does use flash bonus
-oldMethods = [8,9,10]
+topsMethods = [2,4,7,9,10,11,12,13,15] #10 is abs10 method - doesn't use tops but does use flash bonus
+oldMethods = [9,10,11]
 usacMethods = [4,8,9,10]
-for num in topsMethods:
-    if(num != 13 and num != 28 and num != 0 and num != 1):
-        methods.append(rmc.getMethod(num))
-        results.append(getCrossValidationScore(num)[1])
+allMethods = [2,3,4,5,6,7,9,10,11,12,13,14,15]
+for num in allMethods:
+    methods.append(rmc.getMethod(num))
+    results.append(getCrossValidationScore(num)[1])
 writeCSVFile(methods, results)
 
 for result in results:

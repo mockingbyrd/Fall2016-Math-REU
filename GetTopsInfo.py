@@ -239,3 +239,7 @@ def writeToFile(files, listOfMaxPoints, fileName, numProblems):
 # print(listOfMaxPoints)
 # writeToFile(finalsfiles, listOfMaxPoints, "finalsMaxPoints.csv", 3)
 #
+
+points = [[15,20,10],[12,20,17],[11,20,5]]
+tops = [2,2,1]
+print(getTopsInfo(points,tops))

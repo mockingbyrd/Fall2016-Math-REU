@@ -221,38 +221,26 @@ def doMonotonicityAnalysis(numClimbers, numProblems, iterations, numProblemsChan
     for iteration in range(0, iterations):
         ranks1 = produceMonotonicityResultSet(numClimbers, numProblems)
         ranker1 = ClimbingRanker("", [climbers, numProblems, ranks1, tops])
-        if(methodNum == 12 or methodNum == 13):
-            results1, point1 = ranker1.runMethod(methodNum) #run specified method
-        else:
-            results1 = ranker1.runMethod(methodNum)  # run specified method
+        results1 = ranker1.runMethod(methodNum)  # run specified method
         ranks2 = produceMonotonicityResultSetTwo(ranks1, numProblems, numClimbers, numProblemsChanged)
         ranker2 = ClimbingRanker("", [climbers, numProblems, ranks2, tops])
-        if(methodNum == 12 or methodNum == 13):
-            results2, point2 = ranker2.runMethod(methodNum)  # run specified method
-        else:
-            results2 = ranker2.runMethod(methodNum) #run specified method
+        results2 = ranker2.runMethod(methodNum) #run specified method
         sumAdd = compareMonotoneResults(results1, results2)
         if(sumAdd == 0):
             if(methodNum == 12 or methodNum == 13):
                 intmin1 = calculateGeometricMedianSum(ranks1, results1)
-                min1 = calculateGeometricMedianSum(ranks1, point1)
                 intmin2 = calculateGeometricMedianSum(ranks2, results2)
-                min2 = calculateGeometricMedianSum(ranks2, point2)
                 intoneTo2 = calculateGeometricMedianSum(ranks1, results2)
-                oneTo2 = calculateGeometricMedianSum(ranks1, point2)
                 inttwoTo1 = calculateGeometricMedianSum(ranks2, results1)
-                twoTo1 = calculateGeometricMedianSum(ranks2, point1)
                 print(iteration)
                 print("ranks1: ", ranks1)
                 print("results1: ", results1)
-                print("point1: ", point1)
                 print("ranks2:", ranks2)
                 print("results2: ", results2)
-                print("point2: ", point2)
-                print("intmin1, min1: ", intmin1, min1)
-                print("intmin2, min2: ", intmin2, min2)
-                print("intoneTo2, oneTo2: ", intoneTo2, oneTo2)
-                print("inttwoTo1, twoTo1: ", inttwoTo1, twoTo1)
+                print("intmin1: ", intmin1)
+                print("intmin2: ", intmin2)
+                print("intoneTo2: ", intoneTo2)
+                print("inttwoTo1: ", inttwoTo1)
                 accurate1 = min(bruteForceWalg(ranks1, False), key=lambda x:x[1])
                 accurate2 = min(bruteForceWalg(ranks2, False), key=lambda x:x[1])
                 print("minimizing rank for first set of results: ", accurate1)
@@ -322,6 +310,7 @@ def doParetoEfficiencyAnalysis(numClimbers, numProblems, iterations, methodNum):
             sumAdd = 1
         else:
             sumAdd = 0
+            print("NO")
         sum += sumAdd
     return sum/iterations
 
@@ -332,8 +321,8 @@ def doParetoEfficiencyAnalysis(numClimbers, numProblems, iterations, methodNum):
 #    print(rmc.getMethod(methodNum))
 #    print(doParetoEfficiencyAnalysis(5, 4, 10000, methodNum))
 
-#random.seed(10)
-#print(doMonotonicityAnalysis(5, 4, 1000, 1, 15))
+random.seed(11)
+print(doParetoEfficiencyAnalysis(20, 4, 100, 15))
 ###it would appear that the linear program is monotone, however our implementation is ALMOST monotone (99% of the time)
 ###but fails to provide monotone results occasionaly because there are multiple optimal solutions and we have no way to
 ###know which one to choose
@@ -428,20 +417,20 @@ def findPercentOfTimeThatResultEqualsBruteForceResult(iterations, numClimbers, n
 
 
 ##########CHECKING COUNTEREXAMPLES FOR LINEAR PROGRAM#########################
-ranks1 = [[2,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[2,3,1,1]]
-results1 = [3,5,4,2,1]
-bf1 = bruteForceLP(ranks1, False)
-print(bf1)
+#ranks1 = [[2,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[2,3,1,1]]
+#results1 = [3,5,4,2,1]
+#bf1 = bruteForceLP(ranks1, False)
+#print(bf1)
 
-ranks2 = [[1,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[3,3,1,1]]
-results2 = [4,5,2,3,1]
-bf2 = bruteForceLP(ranks2, False)
-print(bf2)
+#ranks2 = [[1,3,4,3],[1,2,5,4],[4,1,1,4],[4,3,1,1],[3,3,1,1]]
+#results2 = [4,5,2,3,1]
+#bf2 = bruteForceLP(ranks2, False)
+#print(bf2)
 
-print("index of results1: ", getIndexInList(bf1, tuple(results1)))
-print("index of results1 in bf2: ", getIndexInList(bf2, tuple(results1)))
-print("index of results2: ", getIndexInList(bf2, tuple(results2)))
-print("index of results2 in bf1: ", getIndexInList(bf1, tuple(results2)))
+#print("index of results1: ", getIndexInList(bf1, tuple(results1)))
+#print("index of results1 in bf2: ", getIndexInList(bf2, tuple(results1)))
+#print("index of results2: ", getIndexInList(bf2, tuple(results2)))
+#print("index of results2 in bf1: ", getIndexInList(bf1, tuple(results2)))
 
 
 

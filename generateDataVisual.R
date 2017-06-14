@@ -1,3 +1,5 @@
+setwd("~/Dropbox/Ranking_Research_with_Braxton/CODE/finalRankingCode")
+library(agricolae)
 data = read.csv('crossValidation.csv', header = TRUE)
 out<-with(data, friedman(judge,trt, evaluation,alpha=0.05, group=FALSE,console=TRUE))
 

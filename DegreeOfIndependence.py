@@ -163,17 +163,17 @@ def doIndependenceAnalysis(methodNum, iterations, numClimbers, tops, numProblems
     for count in range(0, iterations):  # runs the number of times that iterations specifies (upper bound in range not hit):
         ranks = produceResultSet(numClimbers, tops, numProblems)
         ranker = ClimbingRanker("", [climbers, numProblems, ranks, tops])
-        results1, raw1 = ranker.runMethod(methodNum)  # run the specified method
+        results1 = ranker.runMethod(methodNum)  # run the specified method
         ranks2 = produceResultSetTwo(ranks, tops, 0, 1)
         ranker = ClimbingRanker("", [climbers, numProblems, ranks2, tops])
-        results2, raw2 = ranker.runMethod(methodNum)
+        results2 = ranker.runMethod(methodNum)
         sumAdd = compareResults(results1, results2, 0, 1)
         if(sumAdd == 0):
             print("not independent")
             print("ranks1: ", ranks)
-            print("raw1, results1: ", raw1, results1)
+            print("raw1, results1: ", results1)
             print("ranks2: ", ranks2)
-            print("raw2, results2: ", raw2, results2)
+            print("raw2, results2: ", results2)
         sum += sumAdd
     return sum/iterations
 
