@@ -1,2 +1,2 @@
 # Fall2016-Math-REU
-Analysis of rank aggregation methods used in competitive climbing
+Analysis of rank and score aggregation methods used in competitive climbing.
